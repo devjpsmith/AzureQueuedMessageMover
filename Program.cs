@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AzureQueuedMessageMover.Services;
+using AzureQueuedMessageMover.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using static AzureQueuedMessageMover.Startup;
@@ -21,8 +21,8 @@ namespace AzureQueuedMessageMover
         {
             var logger = serviceProvider.GetService<ILogger<Program>>();
             logger.LogInformation("Starting Execution");
-            var mover = serviceProvider.GetService<MessageMover>();
-            await mover.Execute();
+            var mover = serviceProvider.GetService<IMessageMover>();
+            await mover.ExecuteMove();
         }
     }
 }

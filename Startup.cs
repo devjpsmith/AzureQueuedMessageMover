@@ -1,5 +1,7 @@
 using System;
+using AzureQueuedMessageMover.Decorators;
 using AzureQueuedMessageMover.Interfaces;
+using AzureQueuedMessageMover.Queues;
 using AzureQueuedMessageMover.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,12 +32,12 @@ namespace AzureQueuedMessageMover
             var sourceQueueName = Configuration.GetValue<string>("AzureQueues:Source");
             var targetQueueName = Configuration.GetValue<string>("AzureQueues:Target");
 
-            var sourceQueue = QueueFactory.GetQueue(storageConnectionString, sourceQueueName);
-            var targetQueue = QueueFactory.GetQueue(storageConnectionString, targetQueueName);
+            var sourceQueue = new SourceQueue(QueueFactory.GetQueue(storageConnectionString, sourceQueueName));
+            var targetQueue = new TargetQueue(QueueFactory.GetQueue(storageConnectionString, targetQueueName));
 
             var validator = new DuplicateMessageValidator();
-            var mover = new MessageMover(sourceQueue, targetQueue, provider.GetService<ILogger<MessageMover>>(), provider.GetService<IMessageValidator>());
-            serviceCollection.AddSingleton<MessageMover>(mover);
+            var mover = new MessageMover(sourceQueue, targetQueue, provider.GetService<ILogger<MessageMover>>());
+            serviceCollection.AddSingleton<IMessageMover>(new MessageMoverWithDuplicateRemoval(mover));
             return serviceCollection.BuildServiceProvider();
         }
 
